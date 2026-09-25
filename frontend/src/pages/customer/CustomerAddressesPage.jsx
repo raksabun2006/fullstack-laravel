@@ -148,66 +148,91 @@ const CustomerAddressesPage = () => {
             </h3>
 
             <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Recipient Name / Label</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Home, Office"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Contact Phone</label>
-                  <input
-                    type="text"
-                    placeholder="+855 ..."
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    required
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Province / City</label>
-                  <input
-                    type="text"
-                    placeholder="Phnom Penh"
-                    value={formData.province}
-                    onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-                    required
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">District / Khan</label>
-                  <input
-                    type="text"
-                    placeholder="Chamkar Mon"
-                    value={formData.district}
-                    onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                    required
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Commune / Sangkat</label>
-                  <input
-                    type="text"
-                    placeholder="BKK 1"
-                    value={formData.commune}
-                    onChange={(e) => setFormData({ ...formData, commune: e.target.value })}
-                    required
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+  <div>
+    <label className="block font-semibold text-slate-700 mb-1">
+      Contact Name
+    </label>
+    <input
+      type="text"
+      placeholder="e.g. Athiphou Thy"
+      value={formData.name}
+      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+      required
+      className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-blue-500"
+    />
+  </div>
+
+  <div>
+    <label className="block font-semibold text-slate-700 mb-1">
+      Phone Number
+    </label>
+    <input
+      type="text"
+      placeholder="+855 ..."
+      value={formData.phone}
+      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+      required
+      className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-blue-500"
+    />
+  </div>
+</div>
+
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+  <div>
+    <label className="block font-semibold text-slate-700 mb-1">
+      Province / City
+    </label>
+    <input
+      type="text"
+      placeholder="Phnom Penh"
+      value={formData.province}
+      onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+      required
+      className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-blue-500"
+    />
+  </div>
+
+  <div>
+    <label className="block font-semibold text-slate-700 mb-1">
+      Khan / District
+    </label>
+    <input
+      type="text"
+      placeholder="Sen Sok"
+      value={formData.district}
+      onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+      required
+      className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-blue-500"
+    />
+  </div>
+</div>
+
+<div>
+  <label className="block font-semibold text-slate-700 mb-1">
+    Street, House No., Sangkat
+  </label>
+  <input
+    type="text"
+    placeholder="AH11, Tuek Thla, Sen Sok, Phnom Penh"
+    value={
+      formData.address && formData.commune
+        ? `${formData.address}, ${formData.commune}`
+        : formData.address
+    }
+    onChange={(e) => {
+      const value = e.target.value;
+
+      setFormData({
+        ...formData,
+        address: value,
+      });
+    }}
+    required
+    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-blue-500"
+  />
+</div>
 
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">Street Address / House Number</label>

@@ -1,0 +1,38 @@
+services:
+  phonestore-db:
+    image: mariadb:10.11
+    container_name: docker-phonestore-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: phonestore
+    volumes:
+      - phonestore_db_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - phonestore_network
+
+  phonestore:
+    build:
+      context: ./phonestore-app
+      dockerfile: Dockerfile
+    container_name: docker-phonestore
+    restart: unless-stopped
+    ports:
+      - "8002:80"
+    volumes:
+      - ./phonestore-app:/var/www/html
+      - phonestore_vendor:/var/www/html/vendor
+    environment:
+      APACHE_DOCUMENT_ROOT: /var/www/html/public
+    networks:
+      - phonestore_network
+
+networks:
+  phonestore_network:
+    driver: bridge
+
+volumes:
+  phonestore_db_data:
+  phonestore_vendor:

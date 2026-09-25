@@ -1,24 +1,24 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  MapPin, 
-  CreditCard, 
-  Truck, 
-  ShieldCheck, 
-  QrCode, 
-  Banknote, 
-  Plus, 
-  CheckCircle2, 
-  Loader2, 
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import {
+  ArrowLeft,
+  MapPin,
+  CreditCard,
+  Truck,
+  ShieldCheck,
+  QrCode,
+  Banknote,
+  Plus,
+  CheckCircle2,
+  Loader2,
   AlertCircle,
-  Package
-} from 'lucide-react';
-import { getCart } from '../../api/cartApi';
-import { getAddresses, createAddress } from '../../api/addressApi';
-import { createOrder } from '../../api/orderApi';
-import Loading from '../../components/common/Loading';
-import ErrorMessage from '../../components/common/ErrorMessage';
+  Package,
+} from "lucide-react";
+import { getCart } from "../../api/cartApi";
+import { getAddresses, createAddress } from "../../api/addressApi";
+import { createOrder } from "../../api/orderApi";
+import Loading from "../../components/common/Loading";
+import ErrorMessage from "../../components/common/ErrorMessage";
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -26,8 +26,8 @@ const CheckoutPage = () => {
   const [cart, setCart] = useState(null);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState('KHQR'); // KHQR or CASH_ON_DELIVERY
-  const [note, setNote] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState("KHQR"); // KHQR or CASH_ON_DELIVERY
+  const [note, setNote] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -36,13 +36,13 @@ const CheckoutPage = () => {
   // Quick Address modal / inline form state
   const [showAddAddress, setShowAddAddress] = useState(false);
   const [newAddr, setNewAddr] = useState({
-    name: '',
-    phone: '',
-    province: 'Phnom Penh',
-    district: '',
-    commune: '',
-    address: '',
-    postal_code: '12000',
+    name: "",
+    phone: "",
+    province: "Phnom Penh",
+    district: "",
+    commune: "",
+    address: "",
+    postal_code: "12000",
     is_default: true,
   });
   const [addrSaving, setAddrSaving] = useState(false);
@@ -69,7 +69,11 @@ const CheckoutPage = () => {
         setSelectedAddressId(defaultAddr.id);
       }
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to initialize checkout');
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to initialize checkout",
+      );
     } finally {
       setLoading(false);
     }
@@ -80,22 +84,29 @@ const CheckoutPage = () => {
     setAddrSaving(true);
     setAddrError(null);
     try {
-      const created = await createAddress(newAddr);
+      const payload = {
+        ...newAddr,
+        commune: newAddr.commune || newAddr.district || "Sangkat",
+      };
+      const created = await createAddress(payload);
       setAddresses((prev) => [...prev, created]);
       setSelectedAddressId(created.id);
       setShowAddAddress(false);
       setNewAddr({
-        name: '',
-        phone: '',
-        province: 'Phnom Penh',
-        district: '',
-        commune: '',
-        address: '',
-        postal_code: '12000',
+        name: "",
+        phone: "",
+        province: "Phnom Penh",
+        district: "",
+        commune: "",
+        address: "",
+        postal_code: "12000",
         is_default: true,
       });
     } catch (err) {
-      setAddrError(err.response?.data?.message || 'Failed to add shipping address');
+      const errorMsg = err.response?.data?.errors
+        ? Object.values(err.response.data.errors).flat().join(", ")
+        : err.response?.data?.message || "Failed to add shipping address";
+      setAddrError(errorMsg);
     } finally {
       setAddrSaving(false);
     }
@@ -103,12 +114,12 @@ const CheckoutPage = () => {
 
   const handlePlaceOrder = async () => {
     if (!selectedAddressId && addresses.length === 0) {
-      setError('Please add and select a shipping address before proceeding.');
+      setError("Please add and select a shipping address before proceeding.");
       return;
     }
 
     if (!cart || !cart.items || cart.items.length === 0) {
-      setError('Your shopping cart is empty.');
+      setError("Your shopping cart is empty.");
       return;
     }
 
@@ -124,10 +135,16 @@ const CheckoutPage = () => {
 
       // The Laravel backend returns order and payment details
       const responseData = response.data || response;
-      const paymentId = responseData.payment_id || responseData.payment?.id || responseData.data?.payment_id;
-      const orderId = responseData.order_id || responseData.order?.id || responseData.data?.order_id;
+      const paymentId =
+        responseData.payment_id ||
+        responseData.payment?.id ||
+        responseData.data?.payment_id;
+      const orderId =
+        responseData.order_id ||
+        responseData.order?.id ||
+        responseData.data?.order_id;
 
-      if (paymentMethod === 'KHQR') {
+      if (paymentMethod === "KHQR") {
         // Redirect customer to real Bakong KHQR payment page
         if (paymentId) {
           navigate(`/payment/${paymentId}`);
@@ -138,11 +155,18 @@ const CheckoutPage = () => {
       } else {
         // Cash on Delivery -> Redirect to order details
         navigate(`/customer/orders/${orderId}`, {
-          state: { message: 'Order placed successfully! Please prepare cash on delivery.' },
+          state: {
+            message:
+              "Order placed successfully! Please prepare cash on delivery.",
+          },
         });
       }
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to place order. Please try again.');
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to place order. Please try again.",
+      );
       setSubmitting(false);
     }
   };
@@ -162,9 +186,12 @@ const CheckoutPage = () => {
         <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4">
           <Package size={28} />
         </div>
-        <h2 className="text-xl font-bold text-slate-900 tracking-tight mb-2">Your Cart is Empty</h2>
+        <h2 className="text-xl font-bold text-slate-900 tracking-tight mb-2">
+          Your Cart is Empty
+        </h2>
         <p className="text-sm text-slate-500 mb-6 max-w-sm mx-auto">
-          Explore our latest flagship smartphones and accessories to begin your order.
+          Explore our latest flagship smartphones and accessories to begin your
+          order.
         </p>
         <Link
           to="/products"
@@ -190,8 +217,12 @@ const CheckoutPage = () => {
             <ArrowLeft size={20} />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Checkout</h1>
-            <p className="text-xs text-slate-500">Review items, select delivery address, and choose payment method</p>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+              Checkout
+            </h1>
+            <p className="text-xs text-slate-500">
+              Review items, select delivery address, and choose payment method
+            </p>
           </div>
         </div>
       </div>
@@ -209,8 +240,12 @@ const CheckoutPage = () => {
                   <MapPin size={18} />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-slate-900">1. Delivery Address</h2>
-                  <p className="text-xs text-slate-500">Where should we deliver your order?</p>
+                  <h2 className="text-base font-bold text-slate-900">
+                    1. Delivery Address
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Where should we deliver your order?
+                  </p>
                 </div>
               </div>
               {!showAddAddress && (
@@ -227,80 +262,117 @@ const CheckoutPage = () => {
 
             {/* Inline Add Address Form */}
             {showAddAddress && (
-              <form onSubmit={handleSaveAddress} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">Add New Destination</h3>
-                {addrError && <p className="text-xs text-rose-600 font-medium">{addrError}</p>}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <form
+                onSubmit={handleSaveAddress}
+                className="p-5 sm:p-6 bg-slate-50/50 border border-slate-200 rounded-2xl space-y-4"
+              >
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+                  Add New Destination
+                </h3>
+                {addrError && (
+                  <p className="text-xs text-rose-500 font-medium">
+                    {addrError}
+                  </p>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Contact Name *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Contact Name *
+                    </label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Raksa Bun"
+                      placeholder="e.g. Athiphou Thy"
                       value={newAddr.name}
-                      onChange={(e) => setNewAddr({ ...newAddr, name: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-blue-500"
+                      onChange={(e) =>
+                        setNewAddr({ ...newAddr, name: e.target.value })
+                      }
+                      className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                     />
                   </div>
+
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Phone Number *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Phone Number *
+                    </label>
                     <input
                       type="text"
                       required
-                      placeholder="+855 12 345 678"
+                      placeholder="e.g. 078451239"
                       value={newAddr.phone}
-                      onChange={(e) => setNewAddr({ ...newAddr, phone: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-blue-500"
+                      onChange={(e) =>
+                        setNewAddr({ ...newAddr, phone: e.target.value })
+                      }
+                      className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                     />
                   </div>
+
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Province / City *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Province / City *
+                    </label>
                     <input
                       type="text"
                       required
                       placeholder="Phnom Penh"
                       value={newAddr.province}
-                      onChange={(e) => setNewAddr({ ...newAddr, province: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-blue-500"
+                      onChange={(e) =>
+                        setNewAddr({ ...newAddr, province: e.target.value })
+                      }
+                      className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                     />
                   </div>
+
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Khan / District *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Khan / District *
+                    </label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Mean Chey"
+                      placeholder="e.g. Sen Sok"
                       value={newAddr.district}
-                      onChange={(e) => setNewAddr({ ...newAddr, district: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-blue-500"
+                      onChange={(e) =>
+                        setNewAddr({ ...newAddr, district: e.target.value })
+                      }
+                      className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Street, House No., Sangkat *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. AH11, Tuek Thla, Sen Sok, Phnom Penh, Cambodia."
+                      value={newAddr.address}
+                      onChange={(e) =>
+                        setNewAddr({ ...newAddr, address: e.target.value })
+                      }
+                      className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Street, House No., Sangkat *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Street 271, House #128, Boeng Tumpun"
-                    value={newAddr.address}
-                    onChange={(e) => setNewAddr({ ...newAddr, address: e.target.value })}
-                    className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div className="flex items-center justify-end gap-2 pt-2">
+
+                <div className="flex items-center justify-end gap-3 pt-2">
                   <button
                     type="button"
                     onClick={() => setShowAddAddress(false)}
-                    className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-lg transition"
+                    className="px-5 py-2 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={addrSaving}
-                    className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs transition disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 px-6 py-2 text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition disabled:opacity-50"
                   >
-                    {addrSaving && <Loader2 size={12} className="animate-spin" />}
+                    {addrSaving && (
+                      <Loader2 size={13} className="animate-spin" />
+                    )}
                     <span>Save Address</span>
                   </button>
                 </div>
@@ -310,8 +382,13 @@ const CheckoutPage = () => {
             {/* Address List */}
             {addresses.length === 0 && !showAddAddress ? (
               <div className="text-center py-6 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-                <AlertCircle size={24} className="mx-auto text-amber-500 mb-2" />
-                <p className="text-xs text-slate-600 font-medium mb-3">No saved addresses found.</p>
+                <AlertCircle
+                  size={24}
+                  className="mx-auto text-amber-500 mb-2"
+                />
+                <p className="text-xs text-slate-600 font-medium mb-3">
+                  No saved addresses found.
+                </p>
                 <button
                   type="button"
                   onClick={() => setShowAddAddress(true)}
@@ -331,8 +408,8 @@ const CheckoutPage = () => {
                       onClick={() => setSelectedAddressId(addr.id)}
                       className={`p-3.5 rounded-xl border cursor-pointer transition flex items-start justify-between gap-3 ${
                         isSelected
-                          ? 'border-blue-500 bg-blue-50/40 ring-1 ring-blue-500/20'
-                          : 'border-slate-200 hover:border-slate-300 bg-white'
+                          ? "border-blue-500 bg-blue-50/40 ring-1 ring-blue-500/20"
+                          : "border-slate-200 hover:border-slate-300 bg-white"
                       }`}
                     >
                       <div className="flex items-start gap-3">
@@ -347,8 +424,12 @@ const CheckoutPage = () => {
                         </div>
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-slate-900">{addr.name}</span>
-                            <span className="text-xs text-slate-500 font-medium">({addr.phone})</span>
+                            <span className="text-xs font-bold text-slate-900">
+                              {addr.name}
+                            </span>
+                            <span className="text-xs text-slate-500 font-medium">
+                              ({addr.phone})
+                            </span>
                             {addr.is_default && (
                               <span className="px-1.5 py-0.5 text-[10px] font-bold text-blue-700 bg-blue-100 rounded">
                                 Default
@@ -356,11 +437,18 @@ const CheckoutPage = () => {
                             )}
                           </div>
                           <p className="text-xs text-slate-600">
-                            {addr.address}, {addr.district && `${addr.district}, `}{addr.province}
+                            {addr.address},{" "}
+                            {addr.district && `${addr.district}, `}
+                            {addr.province}
                           </p>
                         </div>
                       </div>
-                      {isSelected && <CheckCircle2 size={16} className="text-blue-600 shrink-0" />}
+                      {isSelected && (
+                        <CheckCircle2
+                          size={16}
+                          className="text-blue-600 shrink-0"
+                        />
+                      )}
                     </div>
                   );
                 })}
@@ -375,19 +463,23 @@ const CheckoutPage = () => {
                 <CreditCard size={18} />
               </div>
               <div>
-                <h2 className="text-base font-bold text-slate-900">2. Payment Method</h2>
-                <p className="text-xs text-slate-500">Official Cambodian banking scan or cash on arrival</p>
+                <h2 className="text-base font-bold text-slate-900">
+                  2. Payment Method
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Official Cambodian banking scan or cash on arrival
+                </p>
               </div>
             </div>
 
             <div className="space-y-3">
               {/* Option A: Bakong KHQR */}
               <div
-                onClick={() => setPaymentMethod('KHQR')}
+                onClick={() => setPaymentMethod("KHQR")}
                 className={`p-4 rounded-xl border cursor-pointer transition flex items-start justify-between gap-4 ${
-                  paymentMethod === 'KHQR'
-                    ? 'border-blue-500 bg-blue-50/40 ring-1 ring-blue-500/20'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                  paymentMethod === "KHQR"
+                    ? "border-blue-500 bg-blue-50/40 ring-1 ring-blue-500/20"
+                    : "border-slate-200 hover:border-slate-300 bg-white"
                 }`}
               >
                 <div className="flex items-start gap-3.5">
@@ -395,8 +487,8 @@ const CheckoutPage = () => {
                     <input
                       type="radio"
                       name="payment_method"
-                      checked={paymentMethod === 'KHQR'}
-                      onChange={() => setPaymentMethod('KHQR')}
+                      checked={paymentMethod === "KHQR"}
+                      onChange={() => setPaymentMethod("KHQR")}
                       className="text-blue-600 focus:ring-blue-500"
                     />
                   </div>
@@ -410,24 +502,33 @@ const CheckoutPage = () => {
                       </span>
                     </div>
                     <p className="text-xs text-slate-600 leading-relaxed">
-                      Instant and secure. Pay by scanning the dynamic QR code with Bakong, ABA Mobile, Wing Bank, ACLEDA mobile, or any supported Cambodian bank.
+                      Instant and secure. Pay by scanning the dynamic QR code
+                      with Bakong, ABA Mobile, Wing Bank, ACLEDA mobile, or any
+                      supported Cambodian bank.
                     </p>
                     <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-500 font-medium">
                       <QrCode size={13} className="text-blue-600" />
-                      <span>Dynamic NBC KHQR generated instantly upon order</span>
+                      <span>
+                        Dynamic NBC KHQR generated instantly upon order
+                      </span>
                     </div>
                   </div>
                 </div>
-                {paymentMethod === 'KHQR' && <CheckCircle2 size={18} className="text-blue-600 shrink-0 mt-0.5" />}
+                {paymentMethod === "KHQR" && (
+                  <CheckCircle2
+                    size={18}
+                    className="text-blue-600 shrink-0 mt-0.5"
+                  />
+                )}
               </div>
 
               {/* Option B: Cash on Delivery */}
               <div
-                onClick={() => setPaymentMethod('CASH_ON_DELIVERY')}
+                onClick={() => setPaymentMethod("CASH_ON_DELIVERY")}
                 className={`p-4 rounded-xl border cursor-pointer transition flex items-start justify-between gap-4 ${
-                  paymentMethod === 'CASH_ON_DELIVERY'
-                    ? 'border-blue-500 bg-blue-50/40 ring-1 ring-blue-500/20'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                  paymentMethod === "CASH_ON_DELIVERY"
+                    ? "border-blue-500 bg-blue-50/40 ring-1 ring-blue-500/20"
+                    : "border-slate-200 hover:border-slate-300 bg-white"
                 }`}
               >
                 <div className="flex items-start gap-3.5">
@@ -435,8 +536,8 @@ const CheckoutPage = () => {
                     <input
                       type="radio"
                       name="payment_method"
-                      checked={paymentMethod === 'CASH_ON_DELIVERY'}
-                      onChange={() => setPaymentMethod('CASH_ON_DELIVERY')}
+                      checked={paymentMethod === "CASH_ON_DELIVERY"}
+                      onChange={() => setPaymentMethod("CASH_ON_DELIVERY")}
                       className="text-blue-600 focus:ring-blue-500"
                     />
                   </div>
@@ -448,11 +549,17 @@ const CheckoutPage = () => {
                       <Banknote size={15} className="text-slate-400" />
                     </div>
                     <p className="text-xs text-slate-600 leading-relaxed">
-                      Pay in cash directly to our delivery courier when you receive and inspect your phone.
+                      Pay in cash directly to our delivery courier when you
+                      receive and inspect your phone.
                     </p>
                   </div>
                 </div>
-                {paymentMethod === 'CASH_ON_DELIVERY' && <CheckCircle2 size={18} className="text-blue-600 shrink-0 mt-0.5" />}
+                {paymentMethod === "CASH_ON_DELIVERY" && (
+                  <CheckCircle2
+                    size={18}
+                    className="text-blue-600 shrink-0 mt-0.5"
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -482,14 +589,17 @@ const CheckoutPage = () => {
             {/* Item List */}
             <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
               {items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between gap-3 text-xs">
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between gap-3 text-xs"
+                >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 text-slate-500 font-bold">
                       <Package size={16} />
                     </div>
                     <div className="min-w-0">
                       <p className="font-semibold text-slate-900 truncate">
-                        {item.product_name || 'Smartphone'}
+                        {item.product_name || "Smartphone"}
                       </p>
                       <p className="text-slate-500 text-[11px]">
                         {item.color} • {item.storage} × {item.quantity}
@@ -506,16 +616,25 @@ const CheckoutPage = () => {
             {/* Calculations */}
             <div className="space-y-2 pt-4 border-t border-slate-200 text-xs">
               <div className="flex items-center justify-between text-slate-600">
-                <span>Subtotal ({items.length} {items.length === 1 ? 'item' : 'items'})</span>
-                <span className="font-semibold text-slate-900">${subtotal.toFixed(2)}</span>
+                <span>
+                  Subtotal ({items.length}{" "}
+                  {items.length === 1 ? "item" : "items"})
+                </span>
+                <span className="font-semibold text-slate-900">
+                  ${subtotal.toFixed(2)}
+                </span>
               </div>
               <div className="flex items-center justify-between text-slate-600">
                 <span>Insured Standard Shipping</span>
-                <span className="font-semibold text-slate-900">${shippingFee.toFixed(2)}</span>
+                <span className="font-semibold text-slate-900">
+                  ${shippingFee.toFixed(2)}
+                </span>
               </div>
               <div className="flex items-center justify-between pt-3 border-t border-slate-200 text-sm font-bold text-slate-900">
                 <span>Total Amount</span>
-                <span className="text-lg text-blue-600 tracking-tight">${total.toFixed(2)} USD</span>
+                <span className="text-lg text-blue-600 tracking-tight">
+                  ${total.toFixed(2)} USD
+                </span>
               </div>
             </div>
 
@@ -533,8 +652,16 @@ const CheckoutPage = () => {
                 </>
               ) : (
                 <>
-                  {paymentMethod === 'KHQR' ? <QrCode size={18} /> : <Truck size={18} />}
-                  <span>{paymentMethod === 'KHQR' ? 'Proceed to KHQR Payment' : 'Confirm Order (COD)'}</span>
+                  {paymentMethod === "KHQR" ? (
+                    <QrCode size={18} />
+                  ) : (
+                    <Truck size={18} />
+                  )}
+                  <span>
+                    {paymentMethod === "KHQR"
+                      ? "Proceed to KHQR Payment"
+                      : "Confirm Order (COD)"}
+                  </span>
                 </>
               )}
             </button>
@@ -543,7 +670,9 @@ const CheckoutPage = () => {
             <div className="space-y-2 pt-2 text-[11px] text-slate-500">
               <div className="flex items-center gap-2">
                 <ShieldCheck size={14} className="text-emerald-600 shrink-0" />
-                <span>Verified Official Cambodia National Bank (NBC) Bakong KHQR</span>
+                <span>
+                  Verified Official Cambodia National Bank (NBC) Bakong KHQR
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Truck size={14} className="text-blue-600 shrink-0" />

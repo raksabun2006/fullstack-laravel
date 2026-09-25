@@ -1,0 +1,23 @@
+# Environment files
+.env
+.env.*
+!*.env.example
+# Frontend environment
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+# Laravel environment
+phonestore-app/.env
+phonestore-app/.env.*
+!phonestore-app/.env.example
+# Dependencies
+node_modules/
+vendor/
+# Build output
+frontend/dist/
+# IDE / OS
+.vscode/
+.idea/
+*.log
+.DS_Store
+Thumbs.db
